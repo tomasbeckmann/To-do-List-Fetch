@@ -4,6 +4,8 @@ import Tarea from './components/task';
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const url = 'https://playground.4geeks.com/apis/fake/todos/user/tomasbeckmann'
 
@@ -24,7 +26,7 @@ function App() {
   }
 
   useEffect(() => {
-    fetch(url , {
+    fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json"
@@ -35,14 +37,40 @@ function App() {
       })
       .then(data => {
         console.log("data", data)
-        setTasks(data)
+        if (Array.isArray(data)) {
+          setTasks(data)
+        } else {
+
+          setTasks([])
+
+          fetch(url, {
+            method: "POST",
+            body: JSON.stringify([]),
+            headers: {
+              "Content-Type": "application/json"
+            }
+          }
+          )
+        }
       })
       .catch(error => {
         console.log(error);
       });
-  }, [] )
-
+  }, [])
+  
   const updateTask = () => {
+
+    toast.success("Tasks Updated Successfully", {
+      position: "bottom-center",
+      autoClose: 1500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: false,
+      progress: undefined,
+      theme: "colored",
+      });
+
     fetch(url, {
       method: "PUT",
       body: JSON.stringify(tasks),
@@ -51,13 +79,13 @@ function App() {
       }
     })
       .then((resp) => {
-        console.log("respuesta de la api",resp.ok)
+        console.log("respuesta de la api", resp.ok)
         return resp.json();
       })
 
-      .then((data )=> {
+      .then((data) => {
         console.log(data);
-                           // mostrar mensaje pop up de exito (toast)
+        // mostrar mensaje pop up de exito (toast)
       })
 
       .catch((error) => {
@@ -65,8 +93,57 @@ function App() {
       });
   }
 
+  const deleteTask = () => {
+
+    toast.error("Tasks Deleted Successfully", {
+      position: "bottom-center",
+      autoClose: 1500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: false,
+      progress: undefined,
+      theme: "colored",
+      });
+
+      fetch(url, {
+        method: "DELETE",
+        body: JSON.stringify([]),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+      .then((resp) => {
+        console.log("respuesta de la api", resp.ok)
+        return resp.json();
+      })
+
+      .then((data) => {
+        console.log(data);
+        setTasks([])
+      })
+
+      .catch((error) => {
+        console.log(error);
+      });
+
+  }
+
   return (
+
     <div className='main-container'>
+      <ToastContainer
+        position="bottom-center"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={false}
+        pauseOnHover
+        theme="colored"
+      />
       <div className='header'>
         To-do List
       </div>
@@ -80,14 +157,17 @@ function App() {
               tasks.map((item, index) => {
                 return (
                   <li key={index} > <Tarea texto={item.label} />
-                    <FontAwesomeIcon icon={faTrashCan} onClick={() => setTasks(tasks.filter((toDo, Index2) => index != Index2))} />
+                    <FontAwesomeIcon className='icontrash' icon={faTrashCan} onClick={() => setTasks(tasks.filter((toDo, Index2) => index != Index2))} />
                   </li>
                 );
               })
             }
           </ul>
           <div className='tasknumber'> {tasks.length} Tasks left , keep it up !</div>
-          <button onClick={() => updateTask()}>Save To-do's</button>
+          <div className='boton-container'>
+          <button className='boton' onClick={() => updateTask()}>Save To-do's</button>
+          <button className='botondelete' onClick={() => deleteTask()}>Delete All Tasks</button>
+          </div>
         </div>
       </div>
     </div>
